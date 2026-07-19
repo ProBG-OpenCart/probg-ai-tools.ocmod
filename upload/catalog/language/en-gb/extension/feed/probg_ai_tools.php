@@ -1,0 +1,37 @@
+<?php
+
+$_['text_website']            = 'Уебсайт';
+
+$_['text_categories']         = 'Категории';
+
+$_['text_products']           = 'Продукти';
+
+$_['text_brands']             = 'Марки';
+
+$_['text_ai_resources']       = 'AI ресурси';
+
+$_['text_generated']          = 'Генерирано';
+
+$_['text_llms_json']          = 'LLMS JSON';
+
+$_['text_llms_full']          = 'Пълен AI Dataset';
+
+$_['text_products_graph']     = 'Products Graph';
+
+$_['text_graph_description']  = 'Семантични връзки между продукти, категории и марки';
+
+$_['text_full_ai_dataset']    = 'Пълен AI Dataset';
+
+$_['text_price']              = 'Цена';
+
+$_['text_model']              = 'Модел';
+
+$_['text_feed_disabled']      = 'Фийдът е изключен';
+
+$_['text_full_dataset']       = 'Пълен AI Dataset';
+$_['text_full_ai_dataset'] = 'Пълен AI Dataset';
+$_['text_url'] = 'URL';
+$_['text_brand'] = 'Марка';
+$_['text_description_label'] = 'Описание';
+$_['text_ai_catalog'] = 'AI Catalog';
+$_['text_search_index'] = 'Search Index';
