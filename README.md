@@ -6,7 +6,7 @@ Bulgarian documentation: [README_BG.md](README_BG.md)
 
 ## Version
 
-Current released version: **1.2.0**
+Current released version: **1.3.0**
 
 ## Features
 
@@ -44,7 +44,7 @@ On uninstall, only `seo_url` records whose query values belong to ProBG AI Tools
 
 ## Installation package
 
-Upload `dist/probg-ai-tools-1.2.0.ocmod.zip` through **Extensions → Installer**, refresh **Extensions → Modifications**, then install and configure **ProBG AI Tools** from the feed extensions.
+Upload `dist/probg-ai-tools-1.3.0.ocmod.zip` through **Extensions → Installer**, refresh **Extensions → Modifications**, then install and configure **ProBG AI Tools** from the feed extensions.
 
 The package in `dist/` represents the current released version. Source changes made after a release are packaged with the next version.
 
