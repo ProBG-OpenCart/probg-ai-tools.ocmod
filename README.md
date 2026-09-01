@@ -19,11 +19,12 @@ Current released version: **1.2.0**
 - informational AI access policy output;
 - configurable product limit and individual resource switches;
 - multi-store and active-language filtering;
+- automatic registration of public AI addresses in OpenCart `seo_url`;
 - Bulgarian and English administration/catalog language files.
 
 ## Public resources
 
-When enabled and the recommended rewrite rules are installed, the module exposes:
+When enabled, the module exposes:
 
 - `ai-sitemap.xml`
 - `llms.txt`
@@ -35,7 +36,11 @@ When enabled and the recommended rewrite rules are installed, the module exposes
 - `search-index.json`
 - `ai-policy.txt`
 
-The module settings page contains the corresponding `.htaccess` rewrite rules.
+On installation and every settings save, the module automatically synchronizes these addresses in `oc_seo_url` (or `<DB_PREFIX>seo_url`) for the default store, all additional stores and all active languages. Separate `.htaccess` rules for each AI resource are no longer required.
+
+The standard OpenCart SEO URL mechanism and the standard OpenCart rewrite rule must remain enabled. If a keyword such as `llms.txt` is already owned by another route, the module does not overwrite it and reports the conflict in administration.
+
+On uninstall, only `seo_url` records whose query values belong to ProBG AI Tools are removed.
 
 ## Installation package
 
