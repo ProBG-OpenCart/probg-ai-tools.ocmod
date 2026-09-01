@@ -9,6 +9,7 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
 
     if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
       $this->model_setting_setting->editSetting('feed_probg_ai_tools', $this->request->post);
+      $this->syncSeoUrls();
       $this->session->data['success'] = $this->language->get('text_success');
 
       $this->response->redirect($this->url->link(
@@ -26,6 +27,8 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       'text_yes',
       'text_no',
       'text_ai_catalog_url',
+      'text_seo_url_managed',
+      'text_seo_url_disabled',
       'entry_status',
       'entry_products',
       'entry_categories',
@@ -40,14 +43,12 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       'entry_ai_policy',
       'entry_search_index',
       'entry_semantic_graph',
-      'entry_htaccess',
       'entry_site_description',
       'help_status',
       'help_products',
       'help_categories',
       'help_brands',
       'help_product_limit',
-      'help_htaccess',
       'help_site_description',
       'help_ai_policy',
       'help_ai_sitemap',
@@ -58,7 +59,6 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       'help_llms_txt',
       'help_llms_json',
       'help_llms_full',
-      'text_htaccess_rule',
       'tab_general',
       'tab_ai_sitemap',
       'tab_ai_catalog',
@@ -81,6 +81,8 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       $data['success'] = $this->session->data['success'];
       unset($this->session->data['success']);
     }
+
+    $data['seo_url_enabled'] = (bool)$this->config->get('config_seo_url');
 
     $data['breadcrumbs'] = array();
     $data['breadcrumbs'][] = array(
@@ -176,9 +178,13 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       'feed_probg_ai_tools_semantic_graph' => 1,
       'feed_probg_ai_tools_ai_sitemap' => 1
     ));
+
+    $this->syncSeoUrls();
   }
 
   public function uninstall() {
+    $this->removeSeoUrls();
+
     $this->load->model('setting/setting');
     $this->model_setting_setting->deleteSetting('feed_probg_ai_tools');
   }
@@ -196,6 +202,117 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       }
     }
 
+    if (!isset($this->error['warning'])) {
+      $conflict = $this->findSeoConflict();
+
+      if ($conflict) {
+        $this->error['warning'] = sprintf(
+          $this->language->get('error_seo_keyword_conflict'),
+          $conflict['keyword'],
+          $conflict['query'],
+          $conflict['store_id']
+        );
+      }
+    }
+
     return !$this->error;
+  }
+
+  private function getSeoRoutes() {
+    return array(
+      'extension/feed/probg_ai_tools/sitemap' => 'ai-sitemap.xml',
+      'extension/feed/probg_ai_tools/llms' => 'llms.txt',
+      'extension/feed/probg_ai_tools/json' => 'llms.json',
+      'extension/feed/probg_ai_tools/full' => 'llms-full.txt',
+      'extension/feed/probg_ai_tools/graph' => 'products.graph.json',
+      'extension/feed/probg_ai_tools/catalog' => 'ai-catalog.json',
+      'extension/feed/probg_ai_tools/policy' => 'ai-policy.txt',
+      'extension/feed/probg_ai_tools/search' => 'search-index.json',
+      'extension/feed/probg_ai_tools/semantic' => 'semantic.graph.json'
+    );
+  }
+
+  private function getStoreIds() {
+    $store_ids = array(0);
+    $query = $this->db->query("SELECT store_id FROM `" . DB_PREFIX . "store` ORDER BY store_id ASC");
+
+    foreach ($query->rows as $store) {
+      $store_ids[] = (int)$store['store_id'];
+    }
+
+    return array_values(array_unique($store_ids));
+  }
+
+  private function getLanguageIds() {
+    $language_ids = array();
+    $query = $this->db->query("SELECT language_id FROM `" . DB_PREFIX . "language` WHERE status = '1' ORDER BY sort_order ASC, name ASC");
+
+    foreach ($query->rows as $language) {
+      $language_ids[] = (int)$language['language_id'];
+    }
+
+    if (!$language_ids) {
+      $language_ids[] = (int)$this->config->get('config_language_id');
+    }
+
+    return array_values(array_unique($language_ids));
+  }
+
+  private function findSeoConflict() {
+    foreach ($this->getStoreIds() as $store_id) {
+      foreach ($this->getSeoRoutes() as $route => $keyword) {
+        $query = $this->db->query("SELECT seo_url_id, `query`, keyword, store_id FROM `" . DB_PREFIX . "seo_url` "
+          . "WHERE keyword = '" . $this->db->escape($keyword) . "' "
+          . "AND store_id = '" . (int)$store_id . "' "
+          . "AND `query` <> '" . $this->db->escape($route) . "' LIMIT 1");
+
+        if ($query->num_rows) {
+          return $query->row;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private function syncSeoUrls() {
+    $routes = $this->getSeoRoutes();
+    $language_ids = $this->getLanguageIds();
+
+    $this->removeSeoUrls();
+
+    foreach ($this->getStoreIds() as $store_id) {
+      foreach ($routes as $route => $keyword) {
+        $conflict = $this->db->query("SELECT seo_url_id, `query` FROM `" . DB_PREFIX . "seo_url` "
+          . "WHERE keyword = '" . $this->db->escape($keyword) . "' "
+          . "AND store_id = '" . (int)$store_id . "' "
+          . "AND `query` <> '" . $this->db->escape($route) . "' LIMIT 1");
+
+        if ($conflict->num_rows) {
+          $this->log->write('ProBG AI Tools: SEO URL keyword conflict for "' . $keyword . '" in store_id ' . (int)$store_id . '. Existing query: ' . $conflict->row['query']);
+          continue;
+        }
+
+        foreach ($language_ids as $language_id) {
+          $this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET "
+            . "store_id = '" . (int)$store_id . "', "
+            . "language_id = '" . (int)$language_id . "', "
+            . "`query` = '" . $this->db->escape($route) . "', "
+            . "keyword = '" . $this->db->escape($keyword) . "'");
+        }
+      }
+    }
+  }
+
+  private function removeSeoUrls() {
+    $conditions = array();
+
+    foreach (array_keys($this->getSeoRoutes()) as $route) {
+      $conditions[] = "`query` = '" . $this->db->escape($route) . "'";
+    }
+
+    if ($conditions) {
+      $this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE " . implode(' OR ', $conditions));
+    }
   }
 }
