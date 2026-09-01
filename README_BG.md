@@ -6,7 +6,7 @@ English documentation: [README.md](README.md)
 
 ## Версия
 
-Текуща публикувана версия: **1.2.0**
+Текуща публикувана версия: **1.3.0**
 
 ## Възможности
 
@@ -44,7 +44,7 @@ English documentation: [README.md](README.md)
 
 ## Инсталационен пакет
 
-Качете `dist/probg-ai-tools-1.2.0.ocmod.zip` през **Extensions → Installer**, обновете **Extensions → Modifications**, след което инсталирайте и настройте **ProBG AI Tools** от разширенията тип Feed.
+Качете `dist/probg-ai-tools-1.3.0.ocmod.zip` през **Extensions → Installer**, обновете **Extensions → Modifications**, след което инсталирайте и настройте **ProBG AI Tools** от разширенията тип Feed.
 
 Пакетът в `dist/` е за текущата публикувана версия. Промените в source кода след Release се пакетират при следващата версия.
 
