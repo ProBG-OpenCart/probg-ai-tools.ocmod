@@ -1,0 +1,111 @@
+name: Build and publish release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: startsWith(github.event.head_commit.message, 'release: prepare v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' install.xml | head -n1)
+          if [ -z "$VERSION" ]; then
+            echo "Unable to read version from install.xml" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "package=probg-ai-tools-$VERSION.ocmod.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Validate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find upload -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          ET.parse('install.xml')
+          print('install.xml: OK')
+          PY
+
+      - name: Build installation package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION='${{ steps.version.outputs.version }}'
+          PACKAGE='${{ steps.version.outputs.package }}'
+          mkdir -p dist
+          rm -f "dist/$PACKAGE"
+          zip -rq "dist/$PACKAGE" install.xml upload -x '*.DS_Store' '*/.DS_Store'
+          unzip -t "dist/$PACKAGE"
+          unzip -l "dist/$PACKAGE" | grep -q 'install.xml'
+          unzip -l "dist/$PACKAGE" | grep -q 'upload/admin/controller/extension/feed/probg_ai_tools.php'
+          unzip -l "dist/$PACKAGE" | grep -q 'upload/catalog/controller/extension/feed/probg_ai_tools.php'
+
+      - name: Update SHA256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE='${{ steps.version.outputs.package }}'
+          touch dist/SHA256SUMS
+          grep -v -F "  $PACKAGE" dist/SHA256SUMS > dist/SHA256SUMS.tmp || true
+          sha256sum "dist/$PACKAGE" >> dist/SHA256SUMS.tmp
+          mv dist/SHA256SUMS.tmp dist/SHA256SUMS
+
+      - name: Commit package to dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION='${{ steps.version.outputs.version }}'
+          PACKAGE='${{ steps.version.outputs.package }}'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "dist/$PACKAGE" dist/SHA256SUMS
+          git diff --cached --check
+          git commit -m "build: add ProBG AI Tools $VERSION installation package"
+          git push origin HEAD:main
+
+      - name: Create version tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='${{ steps.version.outputs.tag }}'
+          VERSION='${{ steps.version.outputs.version }}'
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists" >&2
+            exit 1
+          fi
+          git tag -a "$TAG" -m "ProBG AI Tools $VERSION"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='${{ steps.version.outputs.tag }}'
+          VERSION='${{ steps.version.outputs.version }}'
+          PACKAGE='${{ steps.version.outputs.package }}'
+          gh release create "$TAG" \
+            "dist/$PACKAGE#ProBG AI Tools $VERSION installation package" \
+            "dist/SHA256SUMS#SHA256 checksums" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "ProBG AI Tools $VERSION" \
+            --notes-file RELEASE_NOTES.md
