@@ -34,6 +34,7 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       'entry_categories',
       'entry_brands',
       'entry_product_limit',
+      'entry_ai_sitemap',
       'entry_ai_sitemap_url',
       'entry_llms_txt',
       'entry_llms_json',
