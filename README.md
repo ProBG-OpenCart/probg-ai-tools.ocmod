@@ -6,22 +6,42 @@ Bulgarian documentation: [README_BG.md](README_BG.md)
 
 ## Version
 
-Current version: **1.2.0**
+Current released version: **1.2.0**
 
 ## Features
 
 - configurable `llms.txt` and `llms.json` resources;
 - extended `llms-full.txt` dataset;
-- AI sitemap and product, category and manufacturer data;
-- product knowledge graph output;
+- standards-based XML `ai-sitemap.xml`;
+- product, category, manufacturer, stock, price and special-price data;
+- product/category/brand graph output;
 - AI catalogue, search index and semantic graph resources;
-- AI access policy output;
-- configurable product limit and individual feed switches;
-- Bulgarian and English administration language files.
+- informational AI access policy output;
+- configurable product limit and individual resource switches;
+- multi-store and active-language filtering;
+- Bulgarian and English administration/catalog language files.
+
+## Public resources
+
+When enabled and the recommended rewrite rules are installed, the module exposes:
+
+- `ai-sitemap.xml`
+- `llms.txt`
+- `llms.json`
+- `llms-full.txt`
+- `ai-catalog.json`
+- `products.graph.json`
+- `semantic.graph.json`
+- `search-index.json`
+- `ai-policy.txt`
+
+The module settings page contains the corresponding `.htaccess` rewrite rules.
 
 ## Installation package
 
-Upload `probg-ai-tools.ocmod.zip` through **Extensions → Installer**, refresh **Extensions → Modifications**, then install and configure **ProBG AI Tools** from the feed extensions.
+Upload `dist/probg-ai-tools-1.2.0.ocmod.zip` through **Extensions → Installer**, refresh **Extensions → Modifications**, then install and configure **ProBG AI Tools** from the feed extensions.
+
+The package in `dist/` represents the current released version. Source changes made after a release are packaged with the next version.
 
 ## Support development
 
