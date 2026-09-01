@@ -498,17 +498,44 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
   }
 
   private function getProducts() {
-    $this->load->model('catalog/product');
-
+    $language_id = (int)$this->config->get('config_language_id');
+    $store_id = (int)$this->config->get('config_store_id');
+    $customer_group_id = (int)$this->config->get('config_customer_group_id');
     $limit = (int)$this->config->get('feed_probg_ai_tools_product_limit');
-    $filter_data = array();
+
+    $sql = "SELECT p.product_id, p.model, p.sku, p.quantity, p.manufacturer_id, p.price AS base_price, p.date_modified, "
+      . "pd.name, pd.description, pd.meta_description, m.name AS manufacturer, "
+      . "(SELECT price FROM `" . DB_PREFIX . "product_discount` pd2 "
+      . "WHERE pd2.product_id = p.product_id "
+      . "AND pd2.customer_group_id = '" . $customer_group_id . "' "
+      . "AND pd2.quantity = '1' "
+      . "AND ((pd2.date_start = '0000-00-00' OR pd2.date_start < NOW()) "
+      . "AND (pd2.date_end = '0000-00-00' OR pd2.date_end > NOW())) "
+      . "ORDER BY pd2.priority ASC, pd2.price ASC LIMIT 1) AS discount, "
+      . "(SELECT price FROM `" . DB_PREFIX . "product_special` ps "
+      . "WHERE ps.product_id = p.product_id "
+      . "AND ps.customer_group_id = '" . $customer_group_id . "' "
+      . "AND ((ps.date_start = '0000-00-00' OR ps.date_start < NOW()) "
+      . "AND (ps.date_end = '0000-00-00' OR ps.date_end > NOW())) "
+      . "ORDER BY ps.priority ASC, ps.price ASC LIMIT 1) AS special, "
+      . "(SELECT ss.name FROM `" . DB_PREFIX . "stock_status` ss "
+      . "WHERE ss.stock_status_id = p.stock_status_id "
+      . "AND ss.language_id = '" . $language_id . "') AS stock_status "
+      . "FROM `" . DB_PREFIX . "product` p "
+      . "INNER JOIN `" . DB_PREFIX . "product_description` pd ON (p.product_id = pd.product_id) "
+      . "INNER JOIN `" . DB_PREFIX . "product_to_store` p2s ON (p.product_id = p2s.product_id) "
+      . "LEFT JOIN `" . DB_PREFIX . "manufacturer` m ON (p.manufacturer_id = m.manufacturer_id) "
+      . "WHERE pd.language_id = '" . $language_id . "' "
+      . "AND p.status = '1' "
+      . "AND p.date_available <= NOW() "
+      . "AND p2s.store_id = '" . $store_id . "' "
+      . "ORDER BY p.sort_order ASC, LCASE(pd.name) ASC";
 
     if ($limit > 0) {
-      $filter_data['start'] = 0;
-      $filter_data['limit'] = $limit;
+      $sql .= " LIMIT " . $limit;
     }
 
-    $products = $this->model_catalog_product->getProducts($filter_data);
+    $products = $this->db->query($sql)->rows;
     $product_ids = array();
 
     foreach ($products as $product) {
@@ -529,8 +556,9 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
       }
 
       $manufacturer_name = !empty($product['manufacturer']) ? $this->cleanText($product['manufacturer']) : '';
-      $price = isset($product['price']) && $product['price'] !== null ? (float)$product['price'] : '';
-      $special_price = isset($product['special']) && $product['special'] !== null && (float)$product['special'] > 0 ? (float)$product['special'] : '';
+      $price_source = ($product['discount'] !== null && $product['discount'] !== '') ? $product['discount'] : $product['base_price'];
+      $price = ($price_source !== null && $price_source !== '') ? (float)$price_source : '';
+      $special_price = ($product['special'] !== null && $product['special'] !== '' && (float)$product['special'] > 0) ? (float)$product['special'] : '';
 
       $item = array(
         'id' => $product_id,
