@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   release:
-    if: startsWith(github.event.head_commit.message, 'release: prepare v')
     runs-on: ubuntu-latest
 
     steps:
@@ -48,7 +47,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION='${{ steps.version.outputs.version }}'
           PACKAGE='${{ steps.version.outputs.package }}'
           mkdir -p dist
           rm -f "dist/$PACKAGE"
