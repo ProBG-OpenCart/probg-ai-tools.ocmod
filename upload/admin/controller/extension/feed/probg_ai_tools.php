@@ -191,7 +191,7 @@ class ControllerExtensionFeedProbgAiTools extends Controller {
     if (isset($this->request->post['feed_probg_ai_tools_product_limit'])) {
       $limit = trim((string)$this->request->post['feed_probg_ai_tools_product_limit']);
 
-      if ($limit === '' || !ctype_digit($limit)) {
+      if ($limit === '' || !preg_match('/^\d+$/', $limit)) {
         $this->error['product_limit'] = $this->language->get('error_product_limit');
       }
     }
