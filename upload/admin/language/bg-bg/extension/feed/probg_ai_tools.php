@@ -9,6 +9,8 @@ $_['text_disabled'] = 'Изключено';
 $_['text_yes'] = 'Да';
 $_['text_no'] = 'Не';
 $_['text_ai_catalog_url'] = 'AI Catalog';
+$_['text_seo_url_managed'] = 'Публичните имена на AI ресурсите се управляват автоматично чрез OpenCart SEO URL (oc_seo_url). Не са необходими допълнителни .htaccess правила.';
+$_['text_seo_url_disabled'] = 'SEO URL е изключен в настройките на OpenCart. Записите в oc_seo_url са създадени, но публичните адреси като llms.txt ще работят само при включен SEO URL и стандартното OpenCart rewrite правило.';
 
 $_['tab_general'] = 'Основни';
 $_['tab_ai_sitemap'] = 'AI Sitemap';
@@ -33,7 +35,6 @@ $_['entry_ai_policy'] = 'AI Access Policy';
 $_['entry_products_graph'] = 'Products Graph';
 $_['entry_search_index'] = 'Search Index';
 $_['entry_semantic_graph'] = 'Semantic Graph';
-$_['entry_htaccess'] = '.htaccess правила';
 
 $_['help_status'] = 'Включва или изключва всички публични ресурси на ProBG AI Tools.';
 $_['help_product_limit'] = '0 = всички продукти. Положително число ограничава броя продукти във всички генерирани ресурси.';
@@ -50,12 +51,10 @@ $_['help_ai_policy'] = 'Генерира информационен ai-policy.tx
 $_['help_products_graph'] = 'Генерира products.graph.json с връзки продукт → категория и продукт → марка.';
 $_['help_search_index'] = 'Генерира search-index.json с нормализирани ключови думи и комбинации за търсене.';
 $_['help_semantic_graph'] = 'Генерира semantic.graph.json със семантични връзки между продукти, категории и марки.';
-$_['help_htaccess'] = 'Добавете тези правила в .htaccess преди основното OpenCart SEO RewriteRule.';
 
 $_['button_save'] = 'Запази';
 $_['button_cancel'] = 'Отказ';
 
-$_['text_htaccess_rule'] = 'RewriteRule ^ai-sitemap\.xml$ index.php?route=extension/feed/probg_ai_tools/sitemap [L,QSA]\nRewriteRule ^llms\.txt$ index.php?route=extension/feed/probg_ai_tools/llms [L,QSA]\nRewriteRule ^llms\.json$ index.php?route=extension/feed/probg_ai_tools/json [L,QSA]\nRewriteRule ^llms-full\.txt$ index.php?route=extension/feed/probg_ai_tools/full [L,QSA]\nRewriteRule ^products\.graph\.json$ index.php?route=extension/feed/probg_ai_tools/graph [L,QSA]\nRewriteRule ^ai-catalog\.json$ index.php?route=extension/feed/probg_ai_tools/catalog [L,QSA]\nRewriteRule ^ai-policy\.txt$ index.php?route=extension/feed/probg_ai_tools/policy [L,QSA]\nRewriteRule ^search-index\.json$ index.php?route=extension/feed/probg_ai_tools/search [L,QSA]\nRewriteRule ^semantic\.graph\.json$ index.php?route=extension/feed/probg_ai_tools/semantic [L,QSA]';
-
 $_['error_permission'] = 'Нямате права за промяна на ProBG AI Tools!';
 $_['error_product_limit'] = 'Лимитът на продуктите трябва да бъде цяло неотрицателно число.';
+$_['error_seo_keyword_conflict'] = 'SEO URL конфликт: "%s" вече се използва от "%s" за store_id %d. ProBG AI Tools няма да презапише съществуващия адрес.';
